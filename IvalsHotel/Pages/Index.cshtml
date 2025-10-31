@@ -1,0 +1,162 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Начало";
+}
+
+<div class="container mt-5">
+    <div class="d-flex gap-3 mb-4">
+        <a asp-page="/AddTire" class="btn btn-primary">Добави нови</a>
+        <a asp-page="/History" class="btn btn-success">История</a>
+    </div>
+
+    <h1 class="mb-4">Налични гуми</h1>
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <label for="filterWidth" class="form-label">Широчина</label> <select id="filterWidth" name="FilterWidth" class="form-select" onchange="this.form.submit()">
+                <option value="">Всички</option> @foreach (var w in Model.Widths)
+                {
+                    <option value="@w" selected="@(Model.FilterWidth == w ? "selected" : null)"> @w </option>
+                }
+            </select>
+        </div> <div class="col-md-3">
+            <label for="filterHeight" class="form-label">Височина</label> <select id="filterHeight" name="FilterHeight" class="form-select" onchange="this.form.submit()">
+                <option value="">Всички</option> @foreach (var h in Model.Heights)
+                {
+                    <option value="@h" selected="@(Model.FilterHeight == h ? "selected" : null)"> @h </option>
+                }
+            </select>
+        </div> <div class="col-md-3">
+            <label for="filterRimSize" class="form-label">Цолаж</label> <select id="filterRimSize" name="FilterRimSize" class="form-select" onchange="this.form.submit()">
+                <option value="">Всички</option> @foreach (var r in Model.RimSizes)
+                {
+                    <option value="@r" selected="@(Model.FilterRimSize == r ? "selected" : null)"> @r </option>
+                }
+            </select>
+        </div> <div class="col-md-3">
+            <label for="filterSeason" class="form-label">Сезон</label> <select id="filterSeason" name="FilterSeason" class="form-select" onchange="this.form.submit()">
+                <option value="">Всички</option> @foreach (var s in Model.Seasons)
+                {
+                    <option value="@s" selected="@(Model.FilterSeason == s ? "selected" : null)">@s</option>
+                }
+            </select>
+        </div>
+    </form>
+    @if (Model.Tires == null || Model.Tires.Count == 0)
+    {
+        <p>No tires available.</p>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            @foreach (var tire in Model.Tires)
+            {
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">@tire.Made @tire.Model</h5>
+                            <p class="card-text">
+                                Широчина: @tire.Width mm<br />
+                                Височина: @tire.Height mm<br />
+                                Цолаж: @tire.RimSize" <br />
+                                Сезон: @tire.Season <br />
+                                ДОТ: @tire.YearOfProduction <br />
+                                Наличност: @tire.Available @(tire.Available > 1 ? "броя" : "брой") <br />
+                                Описание: @tire.Description
+                            </p>
+
+                            <a asp-page="/EditTire" asp-route-id="@tire.Id" class="btn btn-outline-primary btn-sm me-2">
+                                Редактирай
+                            </a>
+
+                            <form method="post" asp-page-handler="DecreaseAvailability"
+                                  class="d-inline js-confirm"
+                                  data-action="decrease"
+                                  data-name="@($"{tire.Made} {tire.Model}")"
+                                  data-available="@tire.Available">
+                                <input type="hidden" name="id" value="@tire.Id" />
+                                <button type="submit" class="btn btn-danger btn-sm">Намали наличност</button>
+                            </form>
+
+                            <form method="post" asp-page-handler="Delete"
+                                  class="d-inline js-confirm"
+                                  data-action="delete"
+                                  data-name="@($"{tire.Made} {tire.Model}")">
+                                <input type="hidden" name="id" value="@tire.Id" />
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Изтрий</button>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Потвърждение</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Затвори"></button>
+            </div>
+            <div class="modal-body">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Откажи</button>
+                <button type="button" class="btn" id="confirmModalBtn">Потвърди</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const modalEl = document.getElementById('confirmModal');
+            const modal = new bootstrap.Modal(modalEl);
+            const titleEl = modalEl.querySelector('.modal-title');
+            const bodyEl = modalEl.querySelector('.modal-body');
+            const confirmBtn = document.getElementById('confirmModalBtn');
+
+            let pendingForm = null;
+
+            document.querySelectorAll('form.js-confirm').forEach(form => {
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();            
+                    pendingForm = form;            
+
+                    const action = form.dataset.action;    
+                    const name = form.dataset.name || '';
+                    const available = form.dataset.available;
+
+                    if (action === 'delete') {
+                        titleEl.textContent = 'Изтриване';
+                        bodyEl.innerHTML = `Наистина ли искате да изтриете <strong>${name}</strong>? Това действие е необратимо.`;
+                        confirmBtn.textContent = 'Да, изтрий';
+                        confirmBtn.classList.remove('btn-warning');
+                        confirmBtn.classList.add('btn-danger');
+                    } else {
+                        titleEl.textContent = 'Намаляване на наличност';
+                        bodyEl.innerHTML = `Да намаля наличността на <strong>${name}</strong>?` +
+                            (available ? ` <br/>Текуща наличност: <strong>${available}</strong>.` : '');
+                        confirmBtn.textContent = 'Да, намали';
+                        confirmBtn.classList.remove('btn-danger');
+                        confirmBtn.classList.add('btn-warning');
+                    }
+
+                    confirmBtn.disabled = false;
+                    modal.show();
+                });
+            });
+
+            confirmBtn.addEventListener('click', () => {
+                if (!pendingForm) return;
+                confirmBtn.disabled = true;
+                pendingForm.submit();
+            });
+        })();
+    </script>
+}

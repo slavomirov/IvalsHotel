@@ -1,0 +1,67 @@
+﻿@page
+@model IvalsHotel.Pages.AddTireModel
+@{
+    ViewData["Title"] = "Добави нови";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form method="post" class="needs-validation" novalidate>
+    <div class="mb-3">
+        <label asp-for="Input.Made" class="form-label">Марка</label>
+        <input asp-for="Input.Made" class="form-control" />
+        <span asp-validation-for="Input.Made" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Input.Model" class="form-label">Модел</label>
+        <input asp-for="Input.Model" class="form-control" />
+        <span asp-validation-for="Input.Model" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Input.Width" class="form-label">Широчина</label>
+        <input asp-for="Input.Width" type="number" class="form-control" required min="1" />
+        <span asp-validation-for="Input.Width" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Input.Height" class="form-label">Височина</label>
+        <input asp-for="Input.Height" type="number" class="form-control" required min="1" />
+        <span asp-validation-for="Input.Height" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Input.RimSize" class="form-label">Цолаж</label>
+        <input asp-for="Input.RimSize" type="number" class="form-control" required min="1" />
+        <span asp-validation-for="Input.RimSize" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Input.Season" class="form-label">Сезон</label>
+        <select asp-for="Input.Season" class="form-select">
+            <option value="">-- Избери сезон --</option>
+            <option value="Зимни" selected="@(Model.Input?.Season.ToString() == "Зимни" ? "selected" : null)">Зимни</option>
+            <option value="Летни" selected="@(Model.Input?.Season == "Летни" ? "selected" : null)">Летни</option>
+            <option value="Всесезонни" selected="@(Model.Input?.Season == "Всесезонни" ? "selected" : null)">Всесезонни</option>
+        </select>
+        <span asp-validation-for="Input.Season" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Input.YearOfProduction" class="form-label">ДОТ</label>
+        <input asp-for="Input.YearOfProduction" type="number" class="form-control" />
+        <span asp-validation-for="Input.YearOfProduction" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Input.Available" class="form-label">Наличност</label>
+        <input asp-for="Input.Available" type="number" class="form-control" min="0" />
+        <span asp-validation-for="Input.Available" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Input.Description" class="form-label">Описание</label>
+        <textarea asp-for="Input.Description" class="form-control"></textarea>
+        <span asp-validation-for="Input.Description" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Добави</button>
+    <a asp-page="/Index" class="btn btn-secondary ms-2">Отказ</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
